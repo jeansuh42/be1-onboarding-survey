@@ -1,23 +1,29 @@
 package com.innercircle.project_one.survey.domain;
 
-import com.innercircle.project_one.survey.api.common.SurveyObjectDataType;
+import com.innercircle.project_one.survey.common.SurveyObjectDataType;
+import com.innercircle.project_one.survey.domain.embeddable.SurveyObjectContent;
 import jakarta.persistence.*;
-
-import java.util.ArrayList;
-import java.util.List;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
-public class SurveyObject {
+@Getter
+@SuperBuilder
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "DTYPE")
+@NoArgsConstructor
+public abstract class SurveyObject {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(value = EnumType.STRING)
     private SurveyObjectDataType type;
 
-    private String title;
-    private String description;
+    @Embedded
+    private SurveyObjectContent surveyObjectContent;
 
     @ManyToOne
     @JoinColumn(name = "survey_id")
@@ -26,8 +32,5 @@ public class SurveyObject {
     @ManyToOne
     @JoinColumn(name = "survey_version_id")
     private SurveyVersion surveyVersion;
-
-    @OneToMany(mappedBy = "surveyObject", cascade = CascadeType.ALL)
-    private List<ElementObject> elementObjects = new ArrayList<>();
 
 }

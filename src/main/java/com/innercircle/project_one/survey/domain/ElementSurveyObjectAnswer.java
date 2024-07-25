@@ -9,10 +9,10 @@ import jakarta.persistence.ManyToOne;
 @Entity
 @DiscriminatorValue("ELEMENT")
 public class ElementSurveyObjectAnswer extends SurveyObjectAnswer {
+
     @ManyToOne
     @JoinColumn(name = "element_object_id")
     private ElementObject elementObject;
-
     private String answer;
 
 }

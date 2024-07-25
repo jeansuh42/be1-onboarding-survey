@@ -1,10 +1,12 @@
 package com.innercircle.project_one.survey.domain;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 
 @Entity
 @Getter
+@Data
 public class SurveyVersion {
 
     @Id
