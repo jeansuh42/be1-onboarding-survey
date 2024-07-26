@@ -38,17 +38,30 @@ public class SurveyService {
 
     @Transactional
     public ApiResponse saveSurvey(SurveyDTO surveyDTO) {
-
         Survey survey = new Survey(surveyDTO.title(), surveyDTO.description());
+        Survey savedSurvey = surveyRepository.save(survey);
+        SurveyVersion newSurveyVersion = new SurveyVersion(1L, savedSurvey);
+        saveSurveyObjects(savedSurvey, surveyDTO, newSurveyVersion);
+        return new SuccessResponse<>("설문조사 폼이 저장되었습니다.");
+    }
 
+    @Transactional
+    public ApiResponse updateSurvey(Long surveyId, SurveyDTO surveyDTO) {
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new IllegalArgumentException("설문조사를 찾을 수 없습니다."));
+        survey.updateSurveyTitleAndDescription(surveyDTO);
         Survey savedSurvey = surveyRepository.save(survey);
 
         SurveyVersion latestVersion = surveyVersionRepository.findTopBySurveyOrderByVersionDesc(savedSurvey);
-        int newVersionNumber = (latestVersion == null) ? 1 : latestVersion.getVersion() + 1;
+        latestVersion.setVersion(latestVersion.getVersion() + 1);
 
-        SurveyVersion newSurveyVersion = new SurveyVersion(newVersionNumber, savedSurvey);
-        SurveyVersion savedSurveyVersion = surveyVersionRepository.save(newSurveyVersion);
+        saveSurveyObjects(savedSurvey, surveyDTO, latestVersion);
+        return new SuccessResponse<>("설문조사 폼이 업데이트되었습니다.");
+    }
 
+    private void saveSurveyObjects(Survey savedSurvey, SurveyDTO surveyDTO, SurveyVersion surveyVersion) {
+
+        SurveyVersion savedSurveyVersion = surveyVersionRepository.save(surveyVersion);
         savedSurvey.updateSurveyVersion(savedSurveyVersion);
         surveyRepository.save(savedSurvey);
 
@@ -60,12 +73,9 @@ public class SurveyService {
         }
 
         surveyObjectRepository.saveAll(surveyObjects);
-
-        return new SuccessResponse<>("설문조사 폼이 저장되었습니다.");
     }
 
     private SurveyObject createSurveyObject(int idx, SurveyObjectDTO objectDTO, Survey survey, SurveyVersion savedSurveyVersion) {
-
         SurveyObjectContent content = new SurveyObjectContent(
                 objectDTO.title(),
                 objectDTO.description(),
@@ -75,12 +85,12 @@ public class SurveyService {
         SurveyObjectDataType dataType = SurveyObjectDataType.of(objectDTO.type().toUpperCase());
 
         SurveyObject surveyObject = SurveyObject.builder()
-                                        .elementOrder(idx)
-                                        .type(dataType)
-                                        .surveyObjectContent(content)
-                                        .survey(survey)
-                                        .surveyVersionId(savedSurveyVersion.getVersion())
-                                        .build();
+                .elementOrder(idx)
+                .type(dataType)
+                .surveyObjectContent(content)
+                .survey(survey)
+                .surveyVersionId(savedSurveyVersion.getVersion())
+                .build();
 
         if(dataType.isElementDataType()) {
             List<ElementObject> elements = new ArrayList<>();
