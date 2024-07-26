@@ -38,19 +38,17 @@ public class SurveyService {
 
     @Transactional
     public ApiResponse saveSurvey(SurveyDTO surveyDTO) {
-        Survey survey = new Survey(surveyDTO.title(), surveyDTO.description());
-        Survey savedSurvey = surveyRepository.save(survey);
-        SurveyVersion newSurveyVersion = new SurveyVersion(1L, savedSurvey);
-        saveSurveyObjects(savedSurvey, surveyDTO, newSurveyVersion);
+        Survey survey = createSurvey(surveyDTO);
+        SurveyVersion newSurveyVersion = createSurveyVersion(survey);
+        saveSurveyObjects(survey, surveyDTO, newSurveyVersion);
         return new SuccessResponse<>("설문조사 폼이 저장되었습니다.");
     }
 
     @Transactional
     public ApiResponse updateSurvey(Long surveyId, SurveyDTO surveyDTO) {
-        Survey survey = surveyRepository.findById(surveyId)
-                .orElseThrow(() -> new IllegalArgumentException("설문조사를 찾을 수 없습니다."));
-        survey.updateSurveyTitleAndDescription(surveyDTO);
-        Survey savedSurvey = surveyRepository.save(survey);
+        Survey findSurvey = findSurvey(surveyId);
+        findSurvey.updateSurveyTitleAndDescription(surveyDTO);
+        Survey savedSurvey = surveyRepository.save(findSurvey);
 
         SurveyVersion latestVersion = surveyVersionRepository.findTopBySurveyOrderByVersionDesc(savedSurvey);
         latestVersion.setVersion(latestVersion.getVersion() + 1);
@@ -76,12 +74,8 @@ public class SurveyService {
     }
 
     private SurveyObject createSurveyObject(int idx, SurveyObjectDTO objectDTO, Survey survey, SurveyVersion savedSurveyVersion) {
-        SurveyObjectContent content = new SurveyObjectContent(
-                objectDTO.title(),
-                objectDTO.description(),
-                objectDTO.isRequired()
-        );
 
+        SurveyObjectContent content   = new SurveyObjectContent(objectDTO);
         SurveyObjectDataType dataType = SurveyObjectDataType.of(objectDTO.type().toUpperCase());
 
         SurveyObject surveyObject = SurveyObject.builder()
@@ -93,22 +87,42 @@ public class SurveyService {
                 .build();
 
         if(dataType.isElementDataType()) {
-            List<ElementObject> elements = new ArrayList<>();
-            int elementStringSize = objectDTO.elements().size();
 
             if (objectDTO.elements().isEmpty()) {
                 throw new IllegalArgumentException("선택 리스트 요소는 1개 이상 지정되어야 합니다.");
             }
 
-            for (int i = 0; i < elementStringSize; i++) {
-                String elementValue = objectDTO.elements().get(i);
-                ElementObject elementObject = new ElementObject(i, elementValue, surveyObject);
-                elements.add(elementObject);
-            }
-
+            List<ElementObject> elements = getElementObject(objectDTO, surveyObject);
             elementObjectRepository.saveAll(elements);
         }
 
         return surveyObject;
     }
+
+
+    private Survey createSurvey(SurveyDTO surveyDTO) {
+        return surveyRepository.save(new Survey(surveyDTO.title(), surveyDTO.description()));
+    }
+    private Survey findSurvey(Long surveyId) {
+        return surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new IllegalArgumentException("설문조사를 찾을 수 없습니다."));
+    }
+
+    private SurveyVersion createSurveyVersion(Survey survey) {
+        return surveyVersionRepository.save(new SurveyVersion(1L, survey));
+    }
+
+    private List<ElementObject> getElementObject(SurveyObjectDTO objectDTO, SurveyObject surveyObject) {
+        List<ElementObject> elements = new ArrayList<>();
+        int elementStringSize = objectDTO.elements().size();
+
+        for (int i = 0; i < elementStringSize; i++) {
+            String elementValue = objectDTO.elements().get(i);
+            ElementObject elementObject = new ElementObject(i, elementValue, surveyObject);
+            elements.add(elementObject);
+          }
+
+        return elements;
+    }
+
 }
