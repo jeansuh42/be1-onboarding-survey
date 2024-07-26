@@ -1,6 +1,7 @@
 package com.innercircle.project_one.survey.api;
 
 import com.innercircle.project_one.survey.api.dto.SurveyDTO;
+import com.innercircle.project_one.survey.api.dto.SurveySubmitDTO;
 import com.innercircle.project_one.survey.common.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,13 @@ public class SurveyController {
     public ResponseEntity<ApiResponse> modifySurvey(@RequestBody SurveyDTO surveyDTO,
                                                     @PathVariable Long surveyId) {
         ApiResponse response = surveyService.updateSurvey(surveyId, surveyDTO);
+        return ResponseEntity.status(response.getHttpStatus()).body(response);
+    }
+
+    @PostMapping("/{surveyId}")
+    public ResponseEntity<ApiResponse> submitSurvey(@RequestBody SurveySubmitDTO surveySubmitDTO,
+                                                    @PathVariable Long surveyId) {
+        ApiResponse response = surveyService.submitSurveyResponse(surveyId, surveySubmitDTO);
         return ResponseEntity.status(response.getHttpStatus()).body(response);
     }
 

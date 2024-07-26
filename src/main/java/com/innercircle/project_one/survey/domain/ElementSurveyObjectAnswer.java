@@ -4,9 +4,11 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.experimental.SuperBuilder;
 
 
 @Entity
+@SuperBuilder
 @DiscriminatorValue("ELEMENT")
 public class ElementSurveyObjectAnswer extends SurveyObjectAnswer {
 

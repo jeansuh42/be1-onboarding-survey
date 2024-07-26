@@ -20,7 +20,7 @@ public class ElementObject {
     private SurveyObject surveyObject;
 
     public ElementObject(int elementOrder, String elementValue, SurveyObject elementSurveyObject) {
-       this.elementOrder = Objects.requireNonNull(elementOrder);
+       this.elementOrder = elementOrder;
        this.elementValue = Objects.requireNonNull(elementValue);
        this.surveyObject = Objects.requireNonNull(elementSurveyObject);
     }

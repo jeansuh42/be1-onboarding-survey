@@ -1,9 +1,7 @@
 package com.innercircle.project_one.survey.api;
 
-import com.innercircle.project_one.survey.api.repository.ElementObjectRepository;
-import com.innercircle.project_one.survey.api.repository.SurveyObjectRepository;
-import com.innercircle.project_one.survey.api.repository.SurveyRepository;
-import com.innercircle.project_one.survey.api.repository.SurveyVersionRepository;
+import com.innercircle.project_one.survey.api.dto.SurveySubmitDTO;
+import com.innercircle.project_one.survey.api.repository.*;
 import com.innercircle.project_one.survey.api.dto.SurveyDTO;
 import com.innercircle.project_one.survey.api.dto.SurveyObjectDTO;
 import com.innercircle.project_one.survey.common.ApiResponse;
@@ -24,16 +22,20 @@ public class SurveyService {
     private final SurveyVersionRepository surveyVersionRepository;
     private final SurveyObjectRepository surveyObjectRepository;
     private final ElementObjectRepository elementObjectRepository;
+    private final SurveyObjectAnswerRepository surveyObjectAnswerRepository;
+
 
     public SurveyService(
             SurveyRepository surveyRepository,
             SurveyVersionRepository surveyVersionRepository,
             SurveyObjectRepository surveyObjectRepository,
-            ElementObjectRepository elementObjectRepository) {
+            ElementObjectRepository elementObjectRepository,
+            SurveyObjectAnswerRepository surveyObjectAnswerRepository) {
         this.surveyRepository = surveyRepository;
         this.surveyVersionRepository = surveyVersionRepository;
         this.surveyObjectRepository = surveyObjectRepository;
         this.elementObjectRepository = elementObjectRepository;
+        this.surveyObjectAnswerRepository = surveyObjectAnswerRepository;
     }
 
     @Transactional
@@ -100,6 +102,62 @@ public class SurveyService {
     }
 
 
+
+    @Transactional
+    public ApiResponse submitSurveyResponse(Long surveyId, SurveySubmitDTO surveySubmitDTO) {
+
+        Survey survey = findSurvey(surveyId);
+        isSubmitable(survey, surveySubmitDTO);
+
+        List<SurveyObject> surveyObjects = survey.getSurveyObjects();
+        survey.sortSurveyObjects();
+
+        List<SurveySubmitDTO.SurveySubmitObject> objects = surveySubmitDTO.objects();
+
+        for (int i = 0; i < objects.size(); i++) {
+            SurveySubmitDTO.SurveySubmitObject submitObject = objects.get(i);
+
+            List<SurveyObjectAnswer> answers = createAnswer(surveyObjects.get(i), submitObject);
+            for (SurveyObjectAnswer answer : answers) {
+                surveyObjectAnswerRepository.save(answer);
+            }
+        }
+
+        return new SuccessResponse<>("설문조사 응답이 제출되었습니다.");
+    }
+
+
+    private List<SurveyObjectAnswer> createAnswer(SurveyObject surveyObject, SurveySubmitDTO.SurveySubmitObject requestObject) {
+        List<SurveyObjectAnswer> answers = new ArrayList<>();
+        switch (SurveyObjectDataType.of(requestObject.type())) {
+            case TEXT, RICH_TEXT -> {
+                String content = ((SurveySubmitDTO.SurveySubmitObject.StringContent) requestObject.content()).getContent();
+                answers.add(StringSurveyObjectAnswer.builder()
+                        .surveyObject(surveyObject)
+                        .answer(content)
+                        .build());
+            }
+            case RADIO -> {
+                String selectedElement = ((SurveySubmitDTO.SurveySubmitObject.ElementContent) requestObject.content()).getSelectedElement();
+                answers.add(ElementSurveyObjectAnswer.builder()
+                        .surveyObject(surveyObject)
+                        .elementObject(new ElementObject(1, selectedElement, surveyObject))
+                        .build());
+            }
+            case CHECK_BOX -> {
+                List<String> selectedElements = ((SurveySubmitDTO.SurveySubmitObject.CheckBoxContent) requestObject.content()).getSelectedElements();
+                for (int i = 0; i < selectedElements.size(); i++) {
+                    answers.add(ElementSurveyObjectAnswer.builder()
+                            .surveyObject(surveyObject)
+                            .elementObject(new ElementObject(i + 1, selectedElements.get(i), surveyObject))
+                            .build());
+                }
+            }
+            default -> throw new IllegalArgumentException("적절한 입력 타입이 아닙니다.");
+        }
+        return answers;
+    }
+
     private Survey createSurvey(SurveyDTO surveyDTO) {
         return surveyRepository.save(new Survey(surveyDTO.title(), surveyDTO.description()));
     }
@@ -123,6 +181,36 @@ public class SurveyService {
           }
 
         return elements;
+    }
+
+    private void isSubmitable(Survey survey, SurveySubmitDTO surveySubmitDTO){
+
+        if(survey.getSurveyVersion().getVersion() != surveySubmitDTO.version()) {
+            throw new IllegalArgumentException("버전이 일치하지 않습니다.");
+        }
+
+        survey.sortSurveyObjects();
+        List<SurveyObject> savedSurveyObjects = survey.getSurveyObjects();
+        List<SurveySubmitDTO.SurveySubmitObject> submitSurveyObjects = surveySubmitDTO.objects();
+
+        if (savedSurveyObjects.size() != submitSurveyObjects.size()) {
+            throw new IllegalArgumentException("목록이 일치하지 않습니다.");
+        }
+
+        for (int i = 0; i < savedSurveyObjects.size(); i++){
+            SurveyObject surveyObject = savedSurveyObjects.get(i);
+            SurveySubmitDTO.SurveySubmitObject submitSurveyObject = submitSurveyObjects.get(i);
+            
+//            if(!Objects.equals(surveyObject.getId(), submitSurveyObject.id())){
+//                throw new IllegalArgumentException("목록 순서가 일치하지 않습니다.");
+//            }
+            
+            if (surveyObject.getType() != SurveyObjectDataType.of(submitSurveyObject.type())) {
+                throw new IllegalArgumentException("목록 타입이 일치하지 않습니다.");
+            }
+
+        }
+
     }
 
 }

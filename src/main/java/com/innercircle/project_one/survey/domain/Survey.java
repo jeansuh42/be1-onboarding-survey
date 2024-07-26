@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Entity
@@ -46,4 +47,7 @@ public class Survey {
         this.description = surveyDTO.description();
     }
 
+    public void sortSurveyObjects() {
+        surveyObjects.sort(Comparator.comparing(SurveyObject::getElementOrder));
+    }
 }
