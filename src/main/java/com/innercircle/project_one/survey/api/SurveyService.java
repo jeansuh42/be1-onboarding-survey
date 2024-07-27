@@ -77,7 +77,7 @@ public class SurveyService {
 
     private SurveyObject createSurveyObject(int idx, SurveyObjectDTO objectDTO, Survey survey, SurveyVersion savedSurveyVersion) {
 
-        SurveyObjectContent content   = new SurveyObjectContent(objectDTO);
+        SurveyObjectContent content   = new SurveyObjectContent(objectDTO.title(), objectDTO.description(), objectDTO.isRequired());
         SurveyObjectDataType dataType = SurveyObjectDataType.of(objectDTO.type().toUpperCase());
 
         SurveyObject surveyObject = SurveyObject.builder()
