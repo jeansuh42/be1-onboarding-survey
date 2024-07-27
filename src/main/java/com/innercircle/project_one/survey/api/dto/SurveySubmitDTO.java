@@ -31,7 +31,10 @@ public record SurveySubmitDTO(
             SurveySubmitContent content
     ) {
 
-        public static abstract class SurveySubmitContent {}
+        @Getter
+        public static abstract class SurveySubmitContent {
+            public abstract boolean isEmpty();
+        }
 
         @Getter
         public static class ElementContent extends SurveySubmitContent {
@@ -40,6 +43,11 @@ public record SurveySubmitDTO(
             @JsonCreator
             public ElementContent(@JsonProperty("selected_element") String selectedElement) {
                 this.selectedElement = selectedElement;
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return selectedElement == null || selectedElement.isEmpty();
             }
         }
 
@@ -51,6 +59,12 @@ public record SurveySubmitDTO(
             public CheckBoxContent(@JsonProperty("checked_elements") List<String> selectedElements) {
                 this.selectedElements = selectedElements;
             }
+
+            @Override
+            public boolean isEmpty() {
+                return selectedElements == null || selectedElements.isEmpty();
+            }
+
         }
 
         @Getter
@@ -60,8 +74,13 @@ public record SurveySubmitDTO(
             public StringContent(String content) {
                 this.content = content;
             }
-        }
 
+            @Override
+            public boolean isEmpty() {
+                return content == null || content.isEmpty();
+            }
+
+        }
 
     }
 }

@@ -8,7 +8,6 @@ import com.innercircle.project_one.survey.common.SurveyObjectDataType;
 import com.innercircle.project_one.survey.domain.*;
 import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,15 +20,14 @@ public class SurveyAnswerService {
 
     private final SurveyService surveyService;
     private final SurveyObjectAnswerRepository surveyObjectAnswerRepository;
-
-    @Autowired
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
+    private final SurveyValidator surveyValidator;
 
     @Transactional
     public ApiResponse submitSurveyResponse(Long surveyId, SurveySubmitDTO surveySubmitDTO) {
 
         Survey survey = surveyService.findSurvey(surveyId);
-        isSubmitable(survey, surveySubmitDTO);
+        surveyValidator.validateSubmitable(survey, surveySubmitDTO);
 
         List<SurveyObject> surveyObjects = survey.getSurveyObjects();
         survey.sortSurveyObjects();
@@ -61,7 +59,9 @@ public class SurveyAnswerService {
             }
             case RADIO -> {
                 String selectedElement = ((SurveySubmitDTO.SurveySubmitObject.ElementContent) requestObject.content()).getSelectedElement();
-                ElementObject elementObject = entityManager.getReference(ElementObject.class, 1);
+                surveyValidator.validateSelectedElementIncludedAtElementList(requestObject, List.of(selectedElement));
+
+                ElementObject elementObject = entityManager.getReference(ElementObject.class, Long.parseLong(selectedElement));
                 answers.add(ElementSurveyObjectAnswer.builder()
                         .surveyObject(surveyObject)
                         .answer(selectedElement)
@@ -70,6 +70,8 @@ public class SurveyAnswerService {
             }
             case CHECK_BOX -> {
                 List<String> selectedElements = ((SurveySubmitDTO.SurveySubmitObject.CheckBoxContent) requestObject.content()).getSelectedElements();
+                surveyValidator.validateSelectedElementIncludedAtElementList(requestObject, selectedElements);
+
                 for (int i = 0; i < selectedElements.size(); i++) {
                     ElementObject elementObject = entityManager.getReference(ElementObject.class, i + 1);
                     answers.add(ElementSurveyObjectAnswer.builder()
@@ -83,36 +85,5 @@ public class SurveyAnswerService {
         }
         return answers;
     }
-
-    private void isSubmitable(Survey survey, SurveySubmitDTO surveySubmitDTO){
-
-        if(survey.getSurveyVersion().getVersion() != surveySubmitDTO.version()) {
-            throw new IllegalArgumentException("버전이 일치하지 않습니다.");
-        }
-
-        survey.sortSurveyObjects();
-        List<SurveyObject> savedSurveyObjects = survey.getSurveyObjects();
-        List<SurveySubmitDTO.SurveySubmitObject> submitSurveyObjects = surveySubmitDTO.objects();
-
-        if (savedSurveyObjects.size() != submitSurveyObjects.size()) {
-            throw new IllegalArgumentException("목록이 일치하지 않습니다.");
-        }
-
-        for (int i = 0; i < savedSurveyObjects.size(); i++){
-            SurveyObject surveyObject = savedSurveyObjects.get(i);
-            SurveySubmitDTO.SurveySubmitObject submitSurveyObject = submitSurveyObjects.get(i);
-
-//            if(!Objects.equals(surveyObject.getId(), submitSurveyObject.id())){
-//                throw new IllegalArgumentException("목록 순서가 일치하지 않습니다.");
-//            }
-
-            if (surveyObject.getType() != SurveyObjectDataType.of(submitSurveyObject.type())) {
-                throw new IllegalArgumentException("목록 타입이 일치하지 않습니다.");
-            }
-
-        }
-
-    }
-
 
 }
