@@ -6,7 +6,9 @@ import com.innercircle.project_one.survey.common.ApiResponse;
 import com.innercircle.project_one.survey.common.SuccessResponse;
 import com.innercircle.project_one.survey.common.SurveyObjectDataType;
 import com.innercircle.project_one.survey.domain.*;
+import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,8 @@ public class SurveyAnswerService {
     private final SurveyService surveyService;
     private final SurveyObjectAnswerRepository surveyObjectAnswerRepository;
 
+    @Autowired
+    private EntityManager entityManager;
 
     @Transactional
     public ApiResponse submitSurveyResponse(Long surveyId, SurveySubmitDTO surveySubmitDTO) {
@@ -57,17 +61,21 @@ public class SurveyAnswerService {
             }
             case RADIO -> {
                 String selectedElement = ((SurveySubmitDTO.SurveySubmitObject.ElementContent) requestObject.content()).getSelectedElement();
+                ElementObject elementObject = entityManager.getReference(ElementObject.class, 1);
                 answers.add(ElementSurveyObjectAnswer.builder()
                         .surveyObject(surveyObject)
-                        .elementObject(new ElementObject(1, selectedElement, surveyObject))
+                        .answer(selectedElement)
+                        .elementObject(elementObject)
                         .build());
             }
             case CHECK_BOX -> {
                 List<String> selectedElements = ((SurveySubmitDTO.SurveySubmitObject.CheckBoxContent) requestObject.content()).getSelectedElements();
                 for (int i = 0; i < selectedElements.size(); i++) {
+                    ElementObject elementObject = entityManager.getReference(ElementObject.class, i + 1);
                     answers.add(ElementSurveyObjectAnswer.builder()
                             .surveyObject(surveyObject)
-                            .elementObject(new ElementObject(i + 1, selectedElements.get(i), surveyObject))
+                            .answer(selectedElements.get(i))
+                            .elementObject(elementObject)
                             .build());
                 }
             }

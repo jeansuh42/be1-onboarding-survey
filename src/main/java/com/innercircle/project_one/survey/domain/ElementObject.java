@@ -2,11 +2,13 @@ package com.innercircle.project_one.survey.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.Objects;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class ElementObject {
 
     @Id
