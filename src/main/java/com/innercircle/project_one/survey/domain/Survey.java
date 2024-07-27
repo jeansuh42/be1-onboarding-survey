@@ -1,6 +1,5 @@
 package com.innercircle.project_one.survey.domain;
 
-import com.innercircle.project_one.survey.api.dto.SurveyDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,9 +41,9 @@ public class Survey {
         return surveyObjects.size();
     }
 
-    public void updateSurveyTitleAndDescription(SurveyDTO surveyDTO) {
-        this.title = surveyDTO.title();
-        this.description = surveyDTO.description();
+    public void updateSurveyTitleAndDescription(String title, String description) {
+        this.title = title;
+        this.description = description;
     }
 
     public void sortSurveyObjects() {

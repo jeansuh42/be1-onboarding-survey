@@ -49,7 +49,7 @@ public class SurveyService {
     @Transactional
     public ApiResponse updateSurvey(Long surveyId, SurveyDTO surveyDTO) {
         Survey findSurvey = findSurvey(surveyId);
-        findSurvey.updateSurveyTitleAndDescription(surveyDTO);
+        findSurvey.updateSurveyTitleAndDescription(surveyDTO.title(), surveyDTO.description());
         Survey savedSurvey = surveyRepository.save(findSurvey);
 
         SurveyVersion latestVersion = surveyVersionRepository.findTopBySurveyOrderByVersionDesc(savedSurvey);
