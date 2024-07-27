@@ -1,5 +1,6 @@
 package com.innercircle.project_one.survey.domain;
 
+import com.innercircle.project_one.survey.common.BaseEntity;
 import com.innercircle.project_one.survey.common.SurveyObjectDataType;
 import com.innercircle.project_one.survey.domain.embeddable.SurveyObjectContent;
 import jakarta.persistence.*;
@@ -11,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-public class SurveyObject {
+public class SurveyObject extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

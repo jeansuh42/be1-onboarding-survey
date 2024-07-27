@@ -1,5 +1,6 @@
 package com.innercircle.project_one.survey.domain;
 
+import com.innercircle.project_one.survey.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +10,7 @@ import java.util.Objects;
 @Entity
 @Getter
 @NoArgsConstructor
-public class ElementObject {
+public class ElementObject extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
