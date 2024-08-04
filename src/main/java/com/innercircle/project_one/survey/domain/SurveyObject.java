@@ -29,12 +29,7 @@ public class SurveyObject {
     @JoinColumn(name = "survey_id")
     private Survey survey;
 
-    @ManyToOne
-    @JoinColumn(name = "survey_version_id")
-    private SurveyVersion surveyVersion;
+    private Long surveyVersion;
 
-    public void updateSurveyVersion(Long version) {
-        this.surveyVersion = new SurveyVersion(version, this.survey);
-    }
 
 }

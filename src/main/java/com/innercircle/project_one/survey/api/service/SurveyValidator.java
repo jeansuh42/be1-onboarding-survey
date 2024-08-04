@@ -30,7 +30,7 @@ public class SurveyValidator {
     }
 
     private void validateSubmitVersion(Survey survey, SurveySubmitDTO surveySubmitDTO) {
-        if(survey.getSurveyVersion().getVersion() != surveySubmitDTO.version()) {
+        if(!Objects.equals(survey.getSurveyVersion().getVersion(), surveySubmitDTO.version())) {
             throw new IllegalArgumentException("버전이 일치하지 않습니다.");
         }
     }
@@ -42,8 +42,7 @@ public class SurveyValidator {
     }
 
     private void validateSurveyObjects(Survey survey, SurveySubmitDTO surveySubmitDTO) {
-        survey.sortSurveyObjects();
-        List<SurveyObject> savedSurveyObjects = survey.getSurveyObjects();
+        List<SurveyObject> savedSurveyObjects = surveyService.getSurveyVersionObjects(survey.getId(), surveySubmitDTO);
         List<SurveySubmitDTO.SurveySubmitObject> submitSurveyObjects = surveySubmitDTO.objects();
 
         if (savedSurveyObjects.size() != submitSurveyObjects.size()) {
@@ -86,9 +85,9 @@ public class SurveyValidator {
      */
     public void validateSelectedElementIncludedAtElementList(SurveySubmitDTO.SurveySubmitObject requestObject, List<String> answerElements) {
 
-        Survey requestSurvey = surveyService.findSurvey(requestObject.id());
+        SurveyObject surveyObjectId = surveyService.findSurveyObject(requestObject.id());
 
-        List<ElementObject> elementList = elementObjectRepository.findAllBySurveyObjectId(requestSurvey.getId());
+        List<ElementObject> elementList = elementObjectRepository.findAllBySurveyObjectId(surveyObjectId.getId());
 
         Set<String> elementObjectIds = elementList.stream()
                 .map(eo -> String.valueOf(eo.getId()))

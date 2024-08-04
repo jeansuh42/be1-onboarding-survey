@@ -19,4 +19,8 @@ public abstract class SurveyObjectAnswer {
     @JoinColumn(name = "id")
     private SurveyObject surveyObject;
 
+    @ManyToOne
+    @JoinColumn(name = "survey_answer_id")
+    private SurveyAnswer surveyAnswer;
+
 }
