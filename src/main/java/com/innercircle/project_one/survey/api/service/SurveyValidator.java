@@ -4,7 +4,6 @@ import com.innercircle.project_one.survey.api.dto.SurveySubmitDTO;
 import com.innercircle.project_one.survey.api.repository.*;
 import com.innercircle.project_one.survey.common.SurveyObjectDataType;
 import com.innercircle.project_one.survey.domain.*;
-import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -21,13 +20,23 @@ public class SurveyValidator {
 
     private final SurveyService surveyService;
 
+
+    public void validateUpdateable(Long requestId, Survey survey) {
+        validateUpdateVersion(requestId, survey);
+    }
     public void validateSubmitable(Survey survey, SurveySubmitDTO surveySubmitDTO) {
-        validateVersion(survey, surveySubmitDTO);
+        validateSubmitVersion(survey, surveySubmitDTO);
         validateSurveyObjects(survey, surveySubmitDTO);
     }
 
-    private void validateVersion(Survey survey, SurveySubmitDTO surveySubmitDTO) {
+    private void validateSubmitVersion(Survey survey, SurveySubmitDTO surveySubmitDTO) {
         if(survey.getSurveyVersion().getVersion() != surveySubmitDTO.version()) {
+            throw new IllegalArgumentException("버전이 일치하지 않습니다.");
+        }
+    }
+
+    private void validateUpdateVersion(Long requestId, Survey survey) {
+        if(!Objects.equals(requestId, survey.getSurveyVersion().getVersion())) {
             throw new IllegalArgumentException("버전이 일치하지 않습니다.");
         }
     }
