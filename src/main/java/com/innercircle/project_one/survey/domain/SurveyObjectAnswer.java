@@ -1,6 +1,5 @@
 package com.innercircle.project_one.survey.domain;
 
-import com.innercircle.project_one.survey.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -10,7 +9,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "answer_type")
-public abstract class SurveyObjectAnswer extends BaseEntity {
+public abstract class SurveyObjectAnswer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
