@@ -67,7 +67,7 @@ public class SurveyService {
                 .type(dataType)
                 .surveyObjectContent(content)
                 .survey(survey)
-                .surveyVersionId(savedSurveyVersion.getVersion())
+                .surveyVersion(savedSurveyVersion)
                 .build();
 
         if(dataType.isElementDataType()) {
