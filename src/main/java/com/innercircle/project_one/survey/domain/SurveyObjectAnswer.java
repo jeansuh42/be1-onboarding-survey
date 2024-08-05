@@ -1,11 +1,13 @@
 package com.innercircle.project_one.survey.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Entity
 @SuperBuilder
+@Getter
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "answer_type")
@@ -15,8 +17,8 @@ public abstract class SurveyObjectAnswer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "id")
+    @ManyToOne
+    @JoinColumn(name = "survey_object_id")
     private SurveyObject surveyObject;
 
     @ManyToOne

@@ -10,5 +10,6 @@ import java.util.Optional;
 @Repository
 public interface SurveyObjectRepository extends JpaRepository<SurveyObject, Long> {
     Optional<List<SurveyObject>> findBySurveyIdAndSurveyVersionOrderByElementOrder(Long surveyId, Long surveyVersion);
+    List<SurveyObject>  findBySurveyId(Long surveyId);
 }
 
